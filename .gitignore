@@ -1,0 +1,5 @@
+frameworks
+.idea
+.cocos-project.json
+CMakeLists.txt
+manifest.webapp
