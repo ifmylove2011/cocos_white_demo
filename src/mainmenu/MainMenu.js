@@ -2,6 +2,7 @@
  * Created by XTER on 2015/11/12.
  */
 var MainMenuLayer = cc.Layer.extend({
+    selectIndex: 0,
     ctor: function () {
         this._super();
         this.loadMenu();

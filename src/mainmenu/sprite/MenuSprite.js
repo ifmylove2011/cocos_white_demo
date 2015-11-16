@@ -1,5 +1,6 @@
 /**
  * Created by XTER on 2015/11/12.
+ * 加载主菜单
  */
 
 var MenuSprite = cc.Sprite.extend({
@@ -48,7 +49,8 @@ var MenuSprite = cc.Sprite.extend({
     /* 触摸开始 */
     onTouchBegan: function (touch, event) {
         var target = this.target;
-        trace("began");
+        trace("MenuSprite onTouchBegan");
+        //转为本地坐标
         var localTouch = target.convertToNodeSpace(touch.getLocation());
         var size = target.getContentSize();
         var rect = cc.rect(0, 0, size.width, size.height);
@@ -70,7 +72,7 @@ var MenuSprite = cc.Sprite.extend({
     },
     /* 加载子菜单 */
     loadSubItem: function () {
-        trace("click", this.config.title);
+        this.parent.selectIndex = this.index;
         if (this.config.subItem.length == 0) {
             return;
         }
@@ -89,10 +91,25 @@ var MenuSprite = cc.Sprite.extend({
         //设置滚动条大小
         var scrollViewSize = this.scrollView.getContentSize();
         this.scrollView.setInnerContainerSize(cc.size(scrollViewSize.width, scrollViewSize.height / 3 * this.config.subItem.length));
-        trace(scrollViewSize.width,scrollViewSize.height / 3 * this.config.subItem.length);
-
-        var size=this.getContentSize();
-        var j=this.config.subItem.length;
-
+        trace(scrollViewSize.width, scrollViewSize.height / 3 * this.config.subItem.length);
+        //菜单项中的滚动视图添加子菜单项
+        var size = this.getContentSize();
+        for (var i = 0; i < this.config.subItem.length; i++) {
+            var menuItemSprite = new MenuItemSprite(this.index, i);
+            menuItemSprite.attr({
+                x: 0,
+                y: size.height / 3 * i,
+                anchorX: 0,
+                anchorY: 0
+            });
+            this.scrollView.addChild(menuItemSprite);
+        }
+        var actionMoveBy = cc.moveBy(0.2, cc.p(0, -size.height));
+        var actionEaseSineIn = actionMoveBy.easing(cc.easeSineIn());
+        this.scrollView.runAction(actionEaseSineIn);
+    },
+    unloadSubItem: function () {
+        //this.removeChild(this.scrollView);
+        this.removeAllChildren();
     }
 });

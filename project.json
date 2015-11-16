@@ -15,6 +15,7 @@
     "src/app.js",
     "src/config.js",
     "src/mainmenu/MainMenu.js",
-    "src/mainmenu/sprite/MenuSprite.js"
+    "src/mainmenu/sprite/MenuSprite.js",
+    "src/mainmenu/sprite/MenuItemSprite.js"
   ]
 }

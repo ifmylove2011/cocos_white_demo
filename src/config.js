@@ -19,43 +19,43 @@ GC.menuItem = [
         color: cc.color.RED,
         labelColor: cc.color.BLACK,
         subItem: [
-            "25",
-            "50",
-            "不连续",
+            "6x6",
             "5x5",
-            "6x6"
+            "不连续",
+            "50",
+            "25"
         ]
     }, {
         title: "街机",
         color: cc.color.BLUE,
         labelColor: cc.color.WHITE,
         subItem: [
-            "正常",
-            "更快",
-            "逆行",
+            "6x6",
             "5x5",
-            "6x6"
+            "逆行",
+            "更快",
+            "正常"
         ]
     }, {
         title: "禅",
         color: cc.color.GREEN,
         labelColor: cc.color.BLACK,
         subItem: [
-            "15''",
-            "30''",
-            "不连续",
+            "6x6",
             "5x5",
-            "6x6"
+            "不连续",
+            "30''",
+            "15''"
         ]
     }, {
         title: "极速",
         color: cc.color.YELLOW,
         labelColor: cc.color.BLACK,
         subItem: [
-            "正常",
-            "逆行",
-            "不连续",
+            "6x6",
             "5x5",
-            "6x6"
+            "不连续",
+            "逆行",
+            "正常"
         ]
     }];
