@@ -84,6 +84,9 @@ var MenuItemSprite = cc.Sprite.extend({
     },
     onGamePlayEnter: function () {
         trace("play");
-
+        var scene = new cc.Scene();
+        var layer = new GamePlayLayer(this.menuIndex, this.index);
+        scene.addChild(layer);
+        cc.director.runScene(new cc.TransitionCrossFade(1, scene));
     }
 });
