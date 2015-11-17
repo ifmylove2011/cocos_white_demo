@@ -35,6 +35,8 @@ var GamePlayLayer = cc.Layer.extend({
         this.loadConfig(mode, method);
         this.init();
         this.loadTitle();
+        this.onGameStart();
+        return true;
     },
     /* 加载必要游戏参数 */
     loadConfig: function (mode, method) {
@@ -51,10 +53,10 @@ var GamePlayLayer = cc.Layer.extend({
             this.row = row >= 0 ? row : 4;
             this.column = column >= 0 ? row : 4;
         }
-
+        trace("this.row",this.row,"this.column",this.column);
         //移动方向
         this.moveDir = (mode == 1 && method == 2) ? Direction.UP : Direction.DOWN;
-
+        trace("Direction:",this.moveDir);
         //格子最大数量
         if (mode == 0) {
             if (method == 0) {
@@ -63,11 +65,13 @@ var GamePlayLayer = cc.Layer.extend({
                 this.tileMaxNum = 50;
             }
         }
+        trace("this.tileMaxNum",this.tileMaxNum);
 
         //格子大小，算上线条的大小
         var width = (GC.w - GC.titleSpace * this.column) / this.column;
-        var height = (GC.w - GC.titleSpace * this.row) / this.row;
+        var height = (GC.h - GC.titleSpace * this.row) / this.row;
         this.tileSize = cc.size(width, height);
+        trace("this.tileSize",this.tileSize.width,this.tileSize.height);
     },
     /* 初始化场景 */
     init: function () {
@@ -88,12 +92,15 @@ var GamePlayLayer = cc.Layer.extend({
             //定一个随机数作为黑块存在的列数
             var blackColumn = Math.floor(Math.random() * this.column);
             for (var j = 0; j < this.column; j++) {
+                var touchEnabled = true;
                 var type = TileType.NO_TOUCH;
                 //如果为起始行，或者为黑块所在行，则可点击
                 if (i == 0) {
                     type = TileType.START;
+                    touchEnabled = false;
                 } else if (blackColumn == j) {
                     type = TileType.TOUCH;
+                    touchEnabled = false;
                 }
 
                 //处理一下：同一行的触摸以后就不可以再触摸了
@@ -101,9 +108,14 @@ var GamePlayLayer = cc.Layer.extend({
                 var x = j * (this.tileSize.width + GC.titleSpace);
                 var y = i * (this.tileSize.height + GC.titleSpace);
                 var tile = this.createTile(x, y, type);
+                trace("tileSize??",tile.x,tile.y,tile.width,tile.height);
                 this.tileLayer.addChild(tile);
                 this.tiles[i].push(tile);
+                trace("tiles",i,j,this.tiles[i][j].x,this.tiles[i][j].y,this.tiles[i][j].width,this.tiles[i][j].height);
                 //var tile = this.createTile
+                if(touchEnabled!=false){
+                    tile.loadListener();
+                }
             }
         }
     },
@@ -119,30 +131,97 @@ var GamePlayLayer = cc.Layer.extend({
             }
         }
     },
-    onGameState:function(){
-        this.gameState=GameState.PLAYING;
+    onGameStart: function () {
+        this.gameState = GameState.PLAYING;
         this.scheduleUpdate();
     },
+    /* 显示时间 */
     update: function (dt) {
-        this._time += dt;
+        this.time += dt;
         // [正则表达式]获取小数点后三位
         var regex = /([0-9]+\.[0-9]{3})[0-9]*/;
-        var timeStr = String(this._time);
+        var timeStr = String(this.time);
         //将原来的时间显示（很多小数位）替换为以一个"结尾的字符
         var finalStr = timeStr.replace(regex, "$1''");
-        this._timeLabel.setString(finalStr);
+        this.timeLabel.setString(finalStr);
     },
     createTile: function (x, y, type) {
-        var tileSprite = new TileSprite(type, this.tileCallback);
+        //定义块位置及类别
+        var tileSprite = new TileSprite(this.tileSize, this.tileCallback);
+        trace("create tile",tileSprite.width,tileSprite.height);
         tileSprite.setPosition(x, y);
         tileSprite.setType(type);
         return tileSprite;
     },
-    tileCallback: function () {
+    tileCallback: function (sender, isOver) {
+        var self = this.parent.parent;
 
+        //游戏快到终点
+        if (self.tapTileCount == self.tileMaxNum - self.row) {
+            self.isEnd = true;
+        } else if (self.tapTileCount == self.tileMaxNum - 1) {    // _tapTileCount是在移动后面才+1的，所以这里相等判断要-1
+            self.isWin = true;
+            self.onGameOver();
+        }
+
+        // 游戏结束
+        if (isOver == true) {
+            self.isWin = false;
+            self.onGameOver();
+        } else {
+            self.onTileMove();
+        }
     },
     /* 游戏结束，统计数据 */
-    onGameOver:function(){
+    onGameOver: function () {
+        trace("Game Over");
+    },
+    //移动时添加块
+    onTileMove: function () {
+        var callFunc = cc.callFunc(this.addTile.bind(this));
+        //根据移动方向与块大小得出移动的距离
+        var moveByAction = cc.moveBy(0.2, cc.p(this.moveDir.x * this.tileSize.width, this.moveDir.y * (this.tileSize.height + GC.titleSpace)));
+        var action = cc.sequence(moveByAction, callFunc);
+        this.tileLayer.runAction(action);
+    },
+    addTile: function (sender) {
+        //将最底层一行移出屏幕
+        for (var i = 0; i < this.tiles[0].length; i++) {
+            this.tiles[0][i].removeFromParent();
+        }
 
+        // 删除第一维数组
+        this.tiles.shift();
+
+        for (var i = 0; i < this.tiles[1].length; i++) {
+            // 第二排开启触摸
+            this.tiles[1][i].loadListener();
+        }
+
+        // 注意：这里是this._tiles.length, 而不是this._tiles.length - 1
+        this.tiles[this.tiles.length] = new Array();
+
+        var num = Math.floor(Math.random() * this.column);
+
+        for (var i = 0; i < this.column; i++) {
+
+            var type = TileType.NO_TOUCH;
+            if (num == i) {
+                type = TileType.TOUCH;
+            }
+
+            var x = i * (this.tileSize.width + GC.titleSpace) + this.tileSize.width / 2;
+            var y = GC.h + this.tileSize.height * 1.5 + GC.titleSpace + this.tapTileCount * (this.tileSize.height + GC.titleSpace);
+
+            if (this.isEnd == true) {
+                type = TileType.END;
+                y = GC.h + this.tileSize.height * 1.5 + this.tapTileCount * (this.tileSize.height);
+            }
+
+            var node = this.createTile(x, y, type);
+            this.tileLayer.addChild(node);
+            this.tiles[this.tiles.length - 1].push(node);
+        }
+        this.tapTileCount += 1;
     }
 });

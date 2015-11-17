@@ -16,18 +16,19 @@ var TileSprite = cc.Sprite.extend({
         this._super();
         this.loadConfig(callback);
         this.init(size);
+        return true;
     },
     loadConfig: function (callback) {
         this.callback = callback;
     },
     init: function (size) {
-        this.setTextureRect(0, 0, size.width, size.height);
+        this.setTextureRect(cc.rect(0, 0, size.width, size.height));
         this.setAnchorPoint(0,0);
         this.setColor(cc.color.WHITE);
     },
     loadListener: function () {
         cc.eventManager.addListener({
-            event: cc.eventListener.TOUCH_ONE_BY_ONE,
+            event: cc.EventListener.TOUCH_ONE_BY_ONE,
             target: this,
             swallowTouches: true,
             onTouchBegan: this.onTouchBegan,
@@ -40,9 +41,10 @@ var TileSprite = cc.Sprite.extend({
         var localTouch = target.convertToNodeSpace(touch.getLocation());
         var size = target.getContentSize();
         var rect = cc.rect(0, 0, size.width, size.height);
-        if (cc.rectContainsPoint(rect, localTouch)) {
+        if (!cc.rectContainsPoint(rect, localTouch)) {
             return false;
         }
+        trace("tile size",rect.x,rect.y,rect.width,rect.height);
         target.onTouchCallback();
         return true;
     },
@@ -52,13 +54,14 @@ var TileSprite = cc.Sprite.extend({
     /* 触摸后即刻失效 */
     onTouchEnded: function (touch, event) {
         var target = this.target;
-        cc.eventManager.removeListener(target);
+        cc.eventManager.removeListeners(target);
     },
     onTouchCallback: function () {
+        trace("click tile");
         var target = this;
         var callFunc = cc.callFunc(function () {
             var isGameOver = target.type == TileType.NO_TOUCH ? true : false;
-            (target.callback && typeof (target.callback) == "function") && target.callback(target, isGameOver);
+            (target.callback && typeof (target.callback) === "function") && target.callback(target, isGameOver);
         });
 
         //定义点击时的动作效果
@@ -67,7 +70,17 @@ var TileSprite = cc.Sprite.extend({
         var touchAction = cc.sequence(scaleAction, callFunc);
         var noTouchAction = cc.sequence(blinkAction, callFunc);
         var action = (this.type == TileType.TOUCH) ? touchAction : noTouchAction;
-        target.runAction(action);
+
+        var color = (this.type == TileType.TOUCH) ? cc.color.GRAY :cc.color.RED;
+        var scale = (this.type == TileType.TOUCH) ? 0.1 : 1;
+
+        var subTile = new cc.Sprite();
+        this.addChild(subTile);
+        subTile.setPosition(this.width / 2, this.height / 2);
+        subTile.setTextureRect(cc.rect(0, 0, this.width, this.height));
+        subTile.scale = scale;
+        subTile.color = color;
+        subTile.runAction(action);
 
     },
     setType: function (type) {
