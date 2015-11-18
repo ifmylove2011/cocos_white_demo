@@ -18,6 +18,7 @@
     "src/mainmenu/sprite/MenuSprite.js",
     "src/mainmenu/sprite/MenuItemSprite.js",
     "src/GamePlay/GamePlayLayer.js",
-    "src/GamePlay/Sprite/TileSprite.js"
+    "src/GamePlay/Sprite/TileSprite.js",
+    "src/GameOver/GameOverLayer.js"
   ]
 }

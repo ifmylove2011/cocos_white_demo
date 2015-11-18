@@ -44,7 +44,6 @@ var TileSprite = cc.Sprite.extend({
         if (!cc.rectContainsPoint(rect, localTouch)) {
             return false;
         }
-        trace("tile size",rect.x,rect.y,rect.width,rect.height);
         target.onTouchCallback();
         return true;
     },
@@ -74,6 +73,7 @@ var TileSprite = cc.Sprite.extend({
         var color = (this.type == TileType.TOUCH) ? cc.color.GRAY :cc.color.RED;
         var scale = (this.type == TileType.TOUCH) ? 0.1 : 1;
 
+        //创建点击时出现的灰色效果
         var subTile = new cc.Sprite();
         this.addChild(subTile);
         subTile.setPosition(this.width / 2, this.height / 2);
